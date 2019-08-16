@@ -116,12 +116,12 @@ func isPrime(p *big.Int) bool {
 	return true
 }
 
-func checkStr(pistr string, i int) {
+func checkStr(pistr string, i int, c1 chan bool) {
 	//fmt.Println(i)
-
+	c1 <- false
 	temp := string(pistr[i+999])
 	if temp == "0" || temp == "2" || temp == "4" || temp == "6" || temp == "8" {
-		//c1 <- false
+		c1 <- false
 		wg.Done()
 		return
 	}
@@ -131,7 +131,7 @@ func checkStr(pistr string, i int) {
 	product := big.NewInt(1)
 	zero := big.NewInt(0)
 	if product.Mod(n, big.NewInt(3)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(5)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(7)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(11)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(13)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(17)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(19)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(23)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(29)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(31)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(37)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(41)).Cmp(zero) == 0 {
-		//c1 <- false
+		c1 <- false
 		wg.Done()
 		return
 	}
@@ -140,13 +140,14 @@ func checkStr(pistr string, i int) {
 	//fmt.Println(a)
 	if a {
 		fmt.Println(n)
+		c1 <- true
 		wg.Done()
 		return
 		//c1 <- true
 		//c2 <- n
 		//defer wg.Done()
 	} else {
-		//c1 <- false
+		c1 <- false
 		wg.Done()
 		return
 	}
@@ -164,14 +165,14 @@ func main() {
 	fmt.Println(pi)
 	pistr := pi.String()
 
-	//c1 = make(chan bool)
+	// c1 = make(chan bool)
 	//c2 = make(chan *big.Int)
-	//c1 := make(chan bool)
+	c1 := make(chan bool)
 	//c2 := make(chan *big.Int)
 
 	for i := 0; i < 1700; i += 1 {
 		wg.Add(1)
-		go checkStr(pistr, i)
+		go checkStr(pistr, i, c1)
 		//v := <-c1
 		//select {
 		//case v := <-c1:
@@ -193,15 +194,23 @@ func main() {
 		//fmt.Println(i)
 	}
 
+
 	//go func() {
 	//	for x := range c1 {
 	//		// loop over all items
 	//		in <- x
 	//	}
 	//	close(in)
-	//}()
-	wg.Wait()
-	//close(c1)
+	//}
+	go func(){
+		wg.Wait()
+		close(c1)
+	}()
+	for r := range c1{
+		if r == true{
+			fmt.Println("w")
+		}
+	}
 
 	//close(c2)
 	elapsed := time.Since(start)

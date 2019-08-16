@@ -167,31 +167,25 @@ func main() {
 
 	// c1 = make(chan bool)
 	//c2 = make(chan *big.Int)
-	c1 := make(chan bool)
+	// c1 := make(chan bool)
 	//c2 := make(chan *big.Int)
+	for k := 0; k < 100; k += 1{
 
-	for i := 0; i < 1700; i += 1 {
-		wg.Add(1)
-		go checkStr(pistr, i, c1)
-		//v := <-c1
-		//select {
-		//case v := <-c1:
-		//	fmt.Println(v)
-		//if v == true {
-		//	fmt.Println(v)
-		//}
-		//}
-		//default:
-		//	fmt.Println("no value")
-		//}
-		//if v == true {
-		//	v2 := <- c2
-		//	fmt.Println(v2)
-		//	break
-		//}
-
-		//wg.Add(1)
-		//fmt.Println(i)
+		c1 := make(chan bool)
+		for i := 0; i < 100; i += 1 {
+			wg.Add(1)
+			go checkStr(pistr, i + 100*k, c1)
+		}
+		go func(){
+			wg.Wait()
+			close(c1)
+		}()
+		for r := range c1{
+			if r == true{
+				fmt.Println("w")
+				k = 100
+			}
+		}
 	}
 
 
@@ -202,15 +196,16 @@ func main() {
 	//	}
 	//	close(in)
 	//}
-	go func(){
-		wg.Wait()
-		close(c1)
-	}()
-	for r := range c1{
-		if r == true{
-			fmt.Println("w")
-		}
-	}
+
+	// go func(){
+	// 	wg.Wait()
+	// 	close(c1)
+	// }()
+	// for r := range c1{
+	// 	if r == true{
+	// 		fmt.Println("w")
+	// 	}
+	// }
 
 	//close(c2)
 	elapsed := time.Since(start)

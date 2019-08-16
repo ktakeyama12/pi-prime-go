@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"math/big" // high-precision math
 	"math/rand"
+	"sync"
 	"time"
 )
+
+var wg sync.WaitGroup
+
+//var c1 chan bool
+//var c2 chan *big.Int
 
 // This is the same as the first Machin-based Pi
 // program, except that it uses the "big" package's
@@ -110,6 +116,47 @@ func isPrime(p *big.Int) bool {
 	return true
 }
 
+func checkStr(pistr string, i int) {
+	//fmt.Println(i)
+
+	temp := string(pistr[i+999])
+	if temp == "0" || temp == "2" || temp == "4" || temp == "6" || temp == "8" {
+		//c1 <- false
+		wg.Done()
+		return
+	}
+
+	n, _ := new(big.Int).SetString(pistr[i:i+1000], 10)
+
+	product := big.NewInt(1)
+	zero := big.NewInt(0)
+	if product.Mod(n, big.NewInt(3)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(5)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(7)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(11)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(13)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(17)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(19)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(23)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(29)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(31)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(37)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(41)).Cmp(zero) == 0 {
+		//c1 <- false
+		wg.Done()
+		return
+	}
+
+	a := isPrime(n)
+	//fmt.Println(a)
+	if a {
+		fmt.Println(n)
+		wg.Done()
+		return
+		//c1 <- true
+		//c2 <- n
+		//defer wg.Done()
+	} else {
+		//c1 <- false
+		wg.Done()
+		return
+	}
+	//c1 <- false
+
+	//close(c1)
+	//close(c2)
+	return
+}
+
 func main() {
 	start := time.Now()
 
@@ -117,29 +164,46 @@ func main() {
 	fmt.Println(pi)
 	pistr := pi.String()
 
-	for i := 0; i < 3000; i++ {
-		temp := string(pistr[i+999])
-		if temp == "0" || temp == "2" || temp == "4" || temp == "6" || temp == "8" {
-			continue
-		}
+	//c1 = make(chan bool)
+	//c2 = make(chan *big.Int)
+	//c1 := make(chan bool)
+	//c2 := make(chan *big.Int)
 
-		n, _ := new(big.Int).SetString(pistr[i:i+1000], 10)
+	for i := 0; i < 1700; i += 1 {
+		wg.Add(1)
+		go checkStr(pistr, i)
+		//v := <-c1
+		//select {
+		//case v := <-c1:
+		//	fmt.Println(v)
+		//if v == true {
+		//	fmt.Println(v)
+		//}
+		//}
+		//default:
+		//	fmt.Println("no value")
+		//}
+		//if v == true {
+		//	v2 := <- c2
+		//	fmt.Println(v2)
+		//	break
+		//}
 
-		product := big.NewInt(1)
-		zero := big.NewInt(0)
-		if product.Mod(n, big.NewInt(3)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(5)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(7)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(11)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(13)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(17)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(19)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(23)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(29)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(31)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(37)).Cmp(zero) == 0 || product.Mod(n, big.NewInt(41)).Cmp(zero) == 0 {
-			continue
-		}
-		fmt.Println(product)
-
-		a := isPrime(n)
-		if a {
-			fmt.Println(n)
-			break
-		}
-		fmt.Println(i)
+		//wg.Add(1)
+		//fmt.Println(i)
 	}
 
+	//go func() {
+	//	for x := range c1 {
+	//		// loop over all items
+	//		in <- x
+	//	}
+	//	close(in)
+	//}()
+	wg.Wait()
+	//close(c1)
+
+	//close(c2)
 	elapsed := time.Since(start)
-	fmt.Printf("Binomial took %s", elapsed)
+	fmt.Printf("Time %s", elapsed)
 }

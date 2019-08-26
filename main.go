@@ -162,7 +162,7 @@ func main() {
 	start := time.Now()
 
 	pi := calcpi()
-	fmt.Println(pi)
+	// fmt.Println(pi)
 	pistr := pi.String()
 
 	// c1 = make(chan bool)
